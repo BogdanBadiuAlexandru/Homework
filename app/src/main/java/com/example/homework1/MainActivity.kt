@@ -1,6 +1,7 @@
 package com.example.homework1
 
 import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -13,6 +14,7 @@ private const val REQ_CODE = 100;
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var airplaneReceiver: AirplaneModeReceiver
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.i("OnCreate", "Activity A onCreate accessed")
@@ -20,6 +22,8 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(LayoutInflater.from(this))
         setContentView(binding.root)
 
+        airplaneReceiver = AirplaneModeReceiver()
+        IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED).also { registerReceiver(airplaneReceiver, it) }
         setupButtonsOnClickListeners()
     }
 
@@ -46,6 +50,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         Log.i("onStop", "Activity A onStop accessed")
         super.onStop()
+        unregisterReceiver(airplaneReceiver)
     }
 
     override fun onDestroy() {
@@ -64,9 +69,10 @@ class MainActivity : AppCompatActivity() {
             startActivity(openUrlIntent)
         }
 
-        binding.btnGoToC.setOnClickListener{
-            if(binding.editTextInt.text.toString().isNotEmpty() && binding.editTextString.text.toString().isNotEmpty())
-            {
+        binding.btnGoToC.setOnClickListener {
+            if (binding.editTextInt.text.toString()
+                    .isNotEmpty() && binding.editTextString.text.toString().isNotEmpty()
+            ) {
                 val fromAtoCIntent = Intent(this, activity_c::class.java)
                 val numar = binding.editTextInt.text.toString()
                 fromAtoCIntent.putExtra("int", Integer.parseInt(numar))
@@ -79,18 +85,16 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if(requestCode == REQ_CODE)
-            if(resultCode == RESULT_OK) {
+        if (requestCode == REQ_CODE)
+            if (resultCode == RESULT_OK) {
                 Log.d("Return", "RESULT_OK")
                 if (data?.getStringExtra("text") != null) {
                     val text = data.getStringExtra("text")
                     binding.textView.text = text
                     Log.d("ReturnValueOK", text ?: "null")
                 }
-            }
-            else
-            {
-                if(resultCode == RESULT_CANCELED) {
+            } else {
+                if (resultCode == RESULT_CANCELED) {
                     Log.d("Return", "RESULT_CANCELED")
                     if (data?.getStringExtra("text") != null) {
                         binding.textView.text = data.getStringExtra("text")
